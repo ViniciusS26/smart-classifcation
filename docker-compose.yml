@@ -1,0 +1,73 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    hostname: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-app}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-app}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks: [app-network]
+
+  generator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULE_NAME: generator
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_USER:-app}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-app}
+      SIMULATE_FAILURE_EVERY: ${SIMULATE_FAILURE_EVERY:-0}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks: [app-network]
+
+  sentiment-consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULE_NAME: sentiment-consumer
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_USER:-app}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-app}
+      PROCESSING_DELAY_MS: ${PROCESSING_DELAY_MS:-1200}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks: [app-network]
+
+  support-consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULE_NAME: support-consumer
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_USER:-app}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-app}
+      PROCESSING_DELAY_MS: ${PROCESSING_DELAY_MS:-1200}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks: [app-network]
+
+volumes:
+  rabbitmq_data:
+
+networks:
+  app-network:
+    driver: bridge

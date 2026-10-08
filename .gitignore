@@ -1,0 +1,33 @@
+# Build outputs
+target/
+**/target/
+*.class
+*.jar
+*.war
+*.ear
+
+# Maven wrapper cache and downloaded dependencies
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE files
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.vscode/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
