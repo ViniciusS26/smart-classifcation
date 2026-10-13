@@ -21,6 +21,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jackson.version>2.18.3</jackson.version>
         <rabbitmq.version>5.24.0</rabbitmq.version>
+        <smile.version>4.3.0</smile.version>
     </properties>
 
     <dependencyManagement>
@@ -39,6 +40,11 @@
                 <groupId>com.rabbitmq</groupId>
                 <artifactId>amqp-client</artifactId>
                 <version>${rabbitmq.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.haifengl</groupId>
+                <artifactId>smile-core</artifactId>
+                <version>${smile.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
