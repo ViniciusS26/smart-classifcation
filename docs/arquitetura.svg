@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title description">
+  <title id="title">Arquitetura de classificação distribuída com RabbitMQ</title>
+  <desc id="description">Quatro serviços Docker Compose conectados por uma rede bridge: o gerador publica mensagens no RabbitMQ, que encaminha avaliações e solicitações de suporte aos consumidores Java. Mensagens rejeitadas vão para filas DLQ. O RabbitMQ usa volume persistente e expõe AMQP e a interface de administração.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#52657a"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#d15b62"/>
+    </marker>
+    <style>
+      text { font-family: "Segoe UI", Arial, sans-serif; fill: #172b4d; }
+      .small { font-size: 14px; fill: #52657a; }
+      .label { font-size: 15px; font-weight: 600; }
+      .service-title { font-size: 18px; font-weight: 700; }
+      .box { fill: #ffffff; stroke: #c6d2df; stroke-width: 2; }
+      .node { fill: #f7f9fc; stroke: #aebdcd; stroke-width: 1.5; }
+      .arrow { fill: none; stroke: #52657a; stroke-width: 2.5; marker-end: url(#arrow); }
+      .dead { fill: none; stroke: #d15b62; stroke-width: 2; stroke-dasharray: 7 5; marker-end: url(#arrow-red); }
+    </style>
+  </defs>
+
+  <rect width="1280" height="720" fill="#f3f6fa"/>
+  <text x="40" y="48" font-size="27" font-weight="700">Classificação distribuída de mensagens</text>
+  <text x="40" y="76" class="small">Serviços definidos em docker-compose.yml · comunicação pela rede app-network (bridge)</text>
+
+  <rect x="28" y="105" width="1224" height="565" rx="20" fill="#eaf0f6" stroke="#9eafc1" stroke-width="2"/>
+  <rect x="50" y="91" width="255" height="30" rx="15" fill="#eaf0f6"/>
+  <text x="61" y="112" font-size="16" font-weight="700">Docker Compose</text>
+
+  <!-- Generator service -->
+  <rect x="55" y="270" width="220" height="142" rx="14" class="box"/>
+  <rect x="55" y="270" width="220" height="42" rx="14" fill="#dcecff"/>
+  <path d="M55 298h220v14H55z" fill="#dcecff"/>
+  <text x="75" y="298" class="service-title">generator</text>
+  <text x="75" y="339" class="small">Java · gera avaliações e</text>
+  <text x="75" y="360" class="small">solicitações de suporte</text>
+  <text x="75" y="391" class="label">1 mensagem / 150 ms</text>
+
+  <!-- RabbitMQ service boundary -->
+  <rect x="315" y="145" width="540" height="475" rx="16" class="box"/>
+  <rect x="315" y="145" width="540" height="48" rx="16" fill="#ffe7c2"/>
+  <path d="M315 177h540v16H315z" fill="#ffe7c2"/>
+  <text x="339" y="177" class="service-title">rabbitmq · rabbitmq:3.13-management</text>
+  <text x="339" y="213" class="small">Broker · exchange, filas e roteamento de mensagens</text>
+
+  <rect x="345" y="270" width="145" height="76" rx="10" fill="#fff5e7" stroke="#e5ad55" stroke-width="2"/>
+  <text x="417" y="300" text-anchor="middle" class="label">messages.topic</text>
+  <text x="417" y="324" text-anchor="middle" class="small">exchange · topic</text>
+
+  <rect x="565" y="225" width="205" height="74" rx="10" class="node"/>
+  <text x="667" y="254" text-anchor="middle" class="label">reviews.queue</text>
+  <text x="667" y="278" text-anchor="middle" class="small">review.product</text>
+
+  <rect x="565" y="325" width="205" height="74" rx="10" class="node"/>
+  <text x="667" y="354" text-anchor="middle" class="label">support.queue</text>
+  <text x="667" y="378" text-anchor="middle" class="small">support.request</text>
+
+  <path d="M275 328 H345" class="arrow"/>
+  <text x="308" y="315" text-anchor="middle" class="small">JSON</text>
+  <path d="M490 290 C520 290 525 262 565 262" class="arrow"/>
+  <path d="M490 320 C520 320 525 362 565 362" class="arrow"/>
+
+  <rect x="345" y="455" width="145" height="62" rx="10" fill="#fff0f0" stroke="#d8878b" stroke-width="1.5"/>
+  <text x="417" y="481" text-anchor="middle" class="label">messages.dlx</text>
+  <text x="417" y="502" text-anchor="middle" class="small">dead-letter exchange</text>
+  <rect x="565" y="435" width="205" height="56" rx="10" fill="#fff7f7" stroke="#e1a4a7" stroke-width="1.5"/>
+  <text x="667" y="469" text-anchor="middle" class="label">reviews.dlq</text>
+  <rect x="565" y="505" width="205" height="56" rx="10" fill="#fff7f7" stroke="#e1a4a7" stroke-width="1.5"/>
+  <text x="667" y="539" text-anchor="middle" class="label">support.dlq</text>
+  <path d="M565 280 H520 V455 H490" class="dead"/>
+  <path d="M565 362 H510 V495 H490" class="dead"/>
+  <path d="M490 478 H565" class="dead"/>
+  <path d="M490 493 C525 493 520 533 565 533" class="dead"/>
+  <text x="345" y="583" class="small">Rejeição sem requeue → DLQ correspondente</text>
+  <text x="345" y="607" class="small">AMQP :5672 · Administração :15672 · volume rabbitmq_data</text>
+
+  <!-- Consumer services -->
+  <rect x="900" y="205" width="310" height="150" rx="14" class="box"/>
+  <rect x="900" y="205" width="310" height="42" rx="14" fill="#dff4e8"/>
+  <path d="M900 233h310v14H900z" fill="#dff4e8"/>
+  <text x="922" y="233" class="service-title">sentiment-consumer</text>
+  <text x="922" y="274" class="small">Multinomial Naive Bayes · SMILE</text>
+  <text x="922" y="300" class="label">positivo · neutro · negativo</text>
+  <text x="922" y="329" class="small">Classifica avaliações de produtos</text>
+
+  <rect x="900" y="390" width="310" height="150" rx="14" class="box"/>
+  <rect x="900" y="390" width="310" height="42" rx="14" fill="#e9e3ff"/>
+  <path d="M900 418h310v14H900z" fill="#e9e3ff"/>
+  <text x="922" y="418" class="service-title">support-consumer</text>
+  <text x="922" y="459" class="small">Multinomial Naive Bayes · SMILE</text>
+  <text x="922" y="485" class="label">acesso · desempenho · conexão</text>
+  <text x="922" y="514" class="small">Classifica solicitações de suporte</text>
+
+  <path d="M770 262 H900" class="arrow"/>
+  <path d="M770 362 C835 362 835 465 900 465" class="arrow"/>
+  <text x="836" y="248" text-anchor="middle" class="small">consumo</text>
+  <text x="837" y="407" text-anchor="middle" class="small">consumo</text>
+
+  <text x="900" y="582" class="small">Dois serviços Java independentes</text>
+  <text x="900" y="606" class="small">Modelos treinados localmente na inicialização</text>
+</svg>
