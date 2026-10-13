@@ -23,6 +23,7 @@ public final class MessageGenerator {
             "O produto é mediano e poderia ser melhor",
             "Não gostei, a qualidade é ruim",
             "O produto parou de funcionar e estou decepcionado");
+
     private static final List<String> SUPPORT_REQUESTS = List.of(
             "Não consigo acessar minha conta, a senha não funciona",
             "Meu login foi bloqueado e não consigo entrar",
@@ -52,19 +53,23 @@ public final class MessageGenerator {
                     content += " [FORCE_ERROR]";
                 }
 
-                MessagePayload message = new MessagePayload(
-                        UUID.randomUUID(), Instant.now(), type, content);
+                MessagePayload message = new MessagePayload(UUID.randomUUID(), Instant.now(), type, content);
+                
                 byte[] body = JSON.writeValueAsBytes(message);
+
                 AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
                         .contentType("application/json")
                         .deliveryMode(2)
                         .messageId(message.id().toString())
                         .timestamp(new java.util.Date())
                         .build();
+
+                
                 channel.basicPublish(RabbitSettings.EXCHANGE, type, properties, body);
+
                 channel.waitForConfirmsOrDie(5000);
-                System.out.printf("[generator] #%d id=%s rota=%s%n",
-                        sequence, message.id(), type);
+                System.out.printf("[generator] #%d id=%s rota=%s%n",sequence, message.id(), type);
+                
                 Thread.sleep(150);
             }
         }

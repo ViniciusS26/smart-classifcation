@@ -15,6 +15,10 @@
             <artifactId>common</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.github.haifengl</groupId>
+            <artifactId>smile-core</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
