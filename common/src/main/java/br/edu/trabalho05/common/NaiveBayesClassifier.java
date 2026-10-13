@@ -1,26 +1,43 @@
 package br.edu.trabalho05.common;
 
 import java.text.Normalizer;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import smile.classification.DiscreteNaiveBayes;
+
 public final class NaiveBayesClassifier {
     private static final Pattern TOKEN_PATTERN = Pattern.compile("[\\p{L}\\p{N}]+");
 
-    private final Map<String, Integer> documentCounts = new HashMap<>();
-    private final Map<String, Map<String, Integer>> tokenCounts = new HashMap<>();
-    private final Map<String, Integer> tokenTotals = new HashMap<>();
-    private final Map<String, Boolean> vocabulary = new HashMap<>();
-    private int totalDocuments;
+    private final Map<String, Integer> vocabulary;
+    private final List<String> labels;
+    private final DiscreteNaiveBayes model;
 
     public NaiveBayesClassifier(List<TrainingExample> examples) {
         if (examples.isEmpty()) {
             throw new IllegalArgumentException("O modelo precisa de exemplos de treinamento");
         }
+
+        vocabulary = new LinkedHashMap<>();
+        Map<String, Integer> labelIndexes = new LinkedHashMap<>();
         for (TrainingExample example : examples) {
-            train(example.text(), example.label());
+            labelIndexes.computeIfAbsent(example.label(), ignored -> labelIndexes.size());
+            for (String token : tokens(example.text())) {
+                vocabulary.computeIfAbsent(token, ignored -> vocabulary.size());
+            }
+        }
+        if (vocabulary.isEmpty()) {
+            throw new IllegalArgumentException("Os exemplos de treinamento precisam conter palavras");
+        }
+
+        labels = new ArrayList<>(labelIndexes.keySet());
+        model = new DiscreteNaiveBayes(
+                DiscreteNaiveBayes.Model.MULTINOMIAL, labels.size(), vocabulary.size());
+        for (TrainingExample example : examples) {
+            model.update(vectorize(example.text()), labelIndexes.get(example.label()));
         }
     }
 
@@ -30,34 +47,22 @@ public final class NaiveBayesClassifier {
             throw new IllegalArgumentException("Não há palavras para classificar");
         }
 
-        String bestLabel = null;
-        double bestScore = Double.NEGATIVE_INFINITY;
-        int vocabularySize = vocabulary.size();
-        for (String label : documentCounts.keySet()) {
-            double score = Math.log((double) documentCounts.get(label) / totalDocuments);
-            int total = tokenTotals.get(label);
-            Map<String, Integer> counts = tokenCounts.get(label);
-            for (String token : tokens) {
-                score += Math.log((counts.getOrDefault(token, 0) + 1.0)
-                        / (total + vocabularySize));
-            }
-            if (score > bestScore) {
-                bestScore = score;
-                bestLabel = label;
-            }
-        }
-        return bestLabel;
+        return labels.get(model.predict(vectorize(tokens)));
     }
 
-    private void train(String text, String label) {
-        documentCounts.merge(label, 1, Integer::sum);
-        Map<String, Integer> counts = tokenCounts.computeIfAbsent(label, ignored -> new HashMap<>());
-        for (String token : tokens(text)) {
-            vocabulary.put(token, true);
-            counts.merge(token, 1, Integer::sum);
-            tokenTotals.merge(label, 1, Integer::sum);
+    private int[] vectorize(String text) {
+        return vectorize(tokens(text));
+    }
+
+    private int[] vectorize(List<String> tokens) {
+        int[] vector = new int[vocabulary.size()];
+        for (String token : tokens) {
+            Integer index = vocabulary.get(token);
+            if (index != null) {
+                vector[index]++;
+            }
         }
-        totalDocuments++;
+        return vector;
     }
 
     private static List<String> tokens(String text) {
