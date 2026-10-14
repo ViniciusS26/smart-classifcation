@@ -75,6 +75,54 @@ Para remover também o volume persistente do RabbitMQ e zerar as filas:
 docker compose down --volumes
 ```
 
+### Prints da execução
+
+As imagens abaixo mostram uma execução do projeto. Os números de mensagens e as taxas variam conforme o tempo de execução.
+
+#### Vídeo demonstração
+
+[![Prévia do vídeo de demonstração](https://img.youtube.com/vi/2jZt-6Rqlkg/hqdefault.jpg)](https://youtu.be/2jZt-6Rqlkg)
+
+#### Docker Desktop
+
+O Docker Desktop mostra os quatro containers em execução: o broker RabbitMQ, o gerador e os dois consumidores.
+
+![Containers do projeto em execução no Docker Desktop](docs/tela_gerador.png)
+
+O log do gerador registra cada mensagem publicada, seu identificador e a chave de roteamento (`review.product` ou `support.request`).
+
+![Log do gerador publicando mensagens](docs/execucao_container_sentiment_suport.png)
+
+O consumidor de suporte registra as solicitações recebidas, o conteúdo e a categoria identificada, como `acesso`, `desempenho` ou `conexão`.
+
+![Log do consumidor de suporte](docs/execucao_container_consumer_suport.png)
+
+O consumidor de sentimento registra as avaliações recebidas e a classificação atribuída (`positivo`, `neutro` ou `negativo`).
+
+![Log do consumidor de sentimento](docs/tela_home_container.png)
+
+#### Interface de administração do RabbitMQ
+
+A tela Overview resume o estado do broker, incluindo conexões, canais, exchanges, filas e consumidores, além das taxas de publicação e entrega. O gráfico de mensagens enfileiradas representa o estado no momento da captura.
+
+![Visão geral do RabbitMQ e das filas](docs/tela_conections.png)
+
+A lista Connections mostra as três conexões ativas com o broker: `message-generator`, `sentiment-consumer` e `support-consumer`.
+
+![Conexões ativas no RabbitMQ](docs/home_rabbitmq.png)
+
+O detalhe da conexão `message-generator` exibe seu estado e as taxas de tráfego entre o gerador e o broker.
+
+![Detalhes da conexão do gerador no RabbitMQ](docs/execucao_gerador_mensagen.png)
+
+O detalhe da conexão `support-consumer` mostra o consumidor conectado e informações do canal, como prefetch e mensagens não confirmadas.
+
+![Detalhes da conexão do consumidor de suporte no RabbitMQ](docs/tela_consumidor_sentiment.png)
+
+O detalhe da conexão `sentiment-consumer` apresenta as mesmas métricas para o consumidor de sentimento.
+
+![Detalhes da conexão do consumidor de sentimento no RabbitMQ](docs/tela_consumidor_suport.png)
+
 ### Compilar e testar sem Docker
 
 ```powershell
@@ -90,5 +138,5 @@ sentiment-consumer/  Consumidor e modelo local de sentimento
 support-consumer/    Consumidor e modelo local de suporte
 Dockerfile           Build Java reutilizado pelos três serviços
 docker-compose.yml   Broker e três aplicações na rede Docker
-docs/arquitetura.svg Diagrama dos serviços e dos fluxos de mensagens
+docs/                Diagrama da arquitetura e prints da execução
 ```
